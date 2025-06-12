@@ -24,7 +24,7 @@ Usage
 
 Open the game in a browser.
 Use the Start button to begin playing.
-Press the Spacebar or click to make the bird flap and navigate through pipes.
+Press and Hold Spacebar or click to make the bird flap or Ascend , Leave Spacebar to Slowly Desend The Bird and navigate through pipes.
 Use the Pause button to pause the game, and access Restart or Home options.
 Select difficulty levels or toggle Colorblind Mode from the home screen.
 In Custom mode, adjust Pipe Gap and Pipe Speed using sliders.
@@ -32,8 +32,8 @@ In Custom mode, adjust Pipe Gap and Pipe Speed using sliders.
 Project Structure
 
 index.html: Main game file containing the HTML structure and game logic.
-styles.css: (Assumed) Contains styling for the game interface.
-script.js: (Assumed) Contains JavaScript for game mechanics and interactions.
+styles.css: (embeded in html file) Contains styling for the game interface.
+script.js: (embeded in html file) Contains JavaScript for game mechanics and interactions.
 
 Dependencies
 
