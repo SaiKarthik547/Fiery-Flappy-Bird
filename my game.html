@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiery Flappy Bird</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+        }
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ff4500;
+            background-color: #000;
+        }
+        #game-over, #start-screen, #pause-screen, #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #game-over, #pause-screen {
+            display: none;
+        }
+        #game-over h2, #start-screen h1, #pause-screen h2, #loading-screen h2 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #ff4500;
+            text-shadow: 0 0 5px #ff8c00;
+        }
+        #game-over p {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+        #restart-button, #home-button, #resume-button, .difficulty-button, #colorblind-toggle,
+        #restart-pause-button, #home-pause-button, #colorblind-pause-toggle, #pause-button,
+        #reset-score-button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background: linear-gradient(45deg, #ff4500, #e03e00);
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #restart-button:hover, #home-button:hover, #resume-button:hover, .difficulty-button:hover, #colorblind-toggle:hover,
+        #restart-pause-button:hover, #home-pause-button:hover, #colorblind-pause-toggle:hover, #pause-button:hover,
+        #reset-score-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px #ff8c00;
+        }
+        #pause-button {
+            position: absolute;
+            top: 70px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            display: none;
+            opacity: 0.7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+        #pause-button:hover {
+            opacity: 1;
+        }
+        #pause-button svg {
+            width: 24px;
+            height: 24px;
+        }
+        @media (max-width: 600px) {
+            #pause-button {
+                width: 36px;
+                height: 36px;
+            }
+            #pause-button svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
+        .score-container {
+            margin-top: 10px;
+            color: white;
+            font-size: 1.2em;
+            text-shadow: 0 0 3px #ff4500;
+        }
+        .difficulty-buttons {
+            margin-top: 20px;
+        }
+        #custom-settings {
+            margin-top: 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        #custom-settings label {
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+        #custom-settings input[type="range"] {
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-container">
+            <div id="loading-screen">
+                <h2>Loading...</h2>
+            </div>
+            <div id="game-over">
+                <h2>Game Over!</h2>
+                <p>Score: <span id="final-score">0</span></p>
+                <p>Best Score: <span id="final-best-score">0</span></p>
+                <div class="button-container">
+                    <button id="restart-button">Restart</button>
+                    <button id="home-button">Home</button>
+                </div>
+            </div>
+            <div id="pause-screen">
+                <h2>Paused</h2>
+                <div class="button-container">
+                    <button id="resume-button">Resume</button>
+                    <button id="restart-pause-button">Restart</button>
+                    <button id="home-pause-button">Home</button>
+                    <button id="colorblind-pause-toggle">Colorblind Mode: Off</button>
+                </div>
+            </div>
+            <div id="start-screen">
+                <h1>Fiery Flappy Bird</h1>
+                <div class="button-container">
+                    <button id="colorblind-toggle">Colorblind Mode: Off</button>
+                    <button id="reset-score-button">Reset Score</button>
+                </div>
+                <div class="score-container">
+                    <p>Best Score: <span id="start-best-score">0</span></p>
+                </div>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-button" data-difficulty="easy">Easy</button>
+                    <button class="difficulty-button" data-difficulty="medium">Medium</button>
+                    <button class="difficulty-button" data-difficulty="hard">Hard</button>
+                    <button class="difficulty-button" data-difficulty="custom">Custom</button>
+                </div>
+                <div id="custom-settings">
+                    <label>Pipe Gap: <span id="pipe-gap-value">150</span></label>
+                    <input type="range" id="pipe-gap-slider" min="50" max="300" value="150">
+                    <label>Pipe Speed: <span id="pipe-speed-value">1.5</span></label>
+                    <input type="range" id="pipe-speed-slider" min="0.5" max="3.0" step="0.1" value="1.5">
+                </div>
+            </div>
+            <button id="pause-button">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 3L19 12L5 21V3Z" fill="white"/>
+                </svg>
+            </button>
+            <canvas id="game-canvas"></canvas>
+        </div>
+        <div class="score-container">
+            Score: <span id="score">0</span> | Best Score: <span id="best-score">0</span> | Lives: <span id="lives">3</span>
+        </div>
+    </div>
+    <script>
+        function safeBtoa(str) {
+            try {
+                return btoa(unescape(encodeURIComponent(str)));
+            } catch (e) {
+                console.error('Failed to encode SVG string:', e);
+                return '';
+            }
+        }
+
+        function initializeGame(attempts = 5) {
+            if (document.readyState !== 'complete' && document.readyState !== 'interactive') {
+                if (attempts > 0) {
+                    console.warn(`DOM not fully loaded (state: ${document.readyState}). Retrying (${attempts} attempts left)...`);
+                    setTimeout(() => initializeGame(attempts - 1), 100);
+                } else {
+                    console.error("DOM not loaded after multiple attempts. Game cannot start.");
+                }
+                return;
+            }
+
+            const canvas = document.getElementById('game-canvas');
+            if (!canvas) {
+                if (attempts > 0) {
+                    console.warn(`Canvas not found. Retrying (${attempts} attempts left)...`);
+                    setTimeout(() => initializeGame(attempts - 1), 100);
+                } else {
+                    console.error("Failed to find canvas element after multiple attempts. Game cannot start.");
+                    const errorMessage = document.createElement('div');
+                    errorMessage.style.color = 'white';
+                    errorMessage.style.textAlign = 'center';
+                    errorMessage.style.marginTop = '20px';
+                    errorMessage.textContent = 'Error: Game canvas not found. Please refresh the page or check the browser console for details.';
+                    const container = document.querySelector('.container');
+                    if (container) {
+                        container.appendChild(errorMessage);
+                    } else {
+                        document.body.appendChild(errorMessage);
+                    }
+                }
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            const gameOverScreen = document.getElementById('game-over');
+            const finalScoreElement = document.getElementById('final-score');
+            const finalBestScoreElement = document.getElementById('final-best-score');
+            const startBestScoreElement = document.getElementById('start-best-score');
+            const restartButton = document.getElementById('restart-button');
+            const homeButton = document.getElementById('home-button');
+            const scoreElement = document.getElementById('score');
+            const bestScoreElement = document.getElementById('best-score');
+            const livesElement = document.getElementById('lives');
+            const startScreen = document.getElementById('start-screen');
+            const pauseScreen = document.getElementById('pause-screen');
+            const resumeButton = document.getElementById('resume-button');
+            const restartPauseButton = document.getElementById('restart-pause-button');
+            const homePauseButton = document.getElementById('home-pause-button');
+            const colorblindPauseToggle = document.getElementById('colorblind-pause-toggle');
+            const pauseButton = document.getElementById('pause-button');
+            const loadingScreen = document.getElementById('loading-screen');
+            const difficultyButtons = document.querySelectorAll('.difficulty-button');
+            const customSettings = document.getElementById('custom-settings');
+            const pipeGapSlider = document.getElementById('pipe-gap-slider');
+            const pipeSpeedSlider = document.getElementById('pipe-speed-slider');
+            const pipeGapValue = document.getElementById('pipe-gap-value');
+            const pipeSpeedValue = document.getElementById('pipe-speed-value');
+            const colorblindToggle = document.getElementById('colorblind-toggle');
+            const resetScoreButton = document.getElementById('reset-score-button');
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.offsetWidth * dpr;
+            canvas.height = canvas.offsetHeight * dpr;
+            ctx.scale(dpr, dpr);
+            const canvasWidth = canvas.offsetWidth;
+            const canvasHeight = canvas.offsetHeight;
+
+            let gameStarted = false;
+            let gameOver = false;
+            let paused = false;
+            let score = 0;
+            let bestScores = JSON.parse(localStorage.getItem('bestScores')) || {
+                easy: 0,
+                medium: 0,
+                hard: 0,
+                custom: 0
+            };
+            let lives = 3;
+            let difficulty = 'medium';
+            let pipeGap = 150;
+            let pipeSpeed = 1.7;
+            let difficultyIncreaseCounter = 0;
+            let difficultyMessage = '';
+            let difficultyMessageTimer = 0;
+            let powerUpAnimationTimer = 0;
+            let sparkParticles = [];
+            let speedIncreaseCounter = 1;
+
+            const difficultySettings = {
+                easy: { pipeGap: 150, pipeSpeed: 1.8 },
+                medium: { pipeGap: 100, pipeSpeed: 2.2 },
+                hard: { pipeGap: 85, pipeSpeed: 2.8 }
+            };
+
+            const savedCustomSettings = localStorage.getItem('customSettings');
+            if (savedCustomSettings) {
+                const { pipeGap: savedGap, pipeSpeed: savedSpeed } = JSON.parse(savedCustomSettings);
+                pipeGapSlider.value = savedGap;
+                pipeSpeedSlider.value = savedSpeed;
+                pipeGapValue.textContent = savedGap;
+                pipeSpeedValue.textContent = savedSpeed;
+            }
+
+            bestScoreElement.textContent = bestScores[difficulty];
+            startBestScoreElement.textContent = bestScores[difficulty];
+
+            let colorblindMode = localStorage.getItem('colorblindMode') === 'true';
+            colorblindPauseToggle.textContent = `Colorblind Mode: ${colorblindMode ? 'On' : 'Off'}`;
+
+            const bird = {
+                x: canvasWidth / 4,
+                y: canvasHeight / 2,
+                width: 40,
+                height: 30,
+                gravity: 0.1,
+                velocity: 0,
+                jump: -4.5, // Adjusted for stronger single-press ascent
+                holdJump: -0.1, // Used as acceleration for press-and-hold ascent
+                maxVelocity: 3, // Caps upward (-3) and downward (+3) velocity
+                flapFrame: 0,
+                flapTimer: 0,
+                flapInterval: 10,
+                baseSpeed: 0.5,
+                speedMultiplier: 1
+            };
+
+            const pipeWidth = 100;
+            let pipes = [];
+            let pipeSpawnTimer = 120;
+            const pipeSpawnInterval = 180;
+
+            let powerUps = [];
+            let powerUpSpawnTimer = 0;
+            const powerUpSpawnIntervalMin = 300;
+            const powerUpSpawnIntervalMax = 600;
+            let nextPowerUpSpawn = Math.floor(Math.random() * (powerUpSpawnIntervalMax - powerUpSpawnIntervalMin + 1)) + powerUpSpawnIntervalMin;
+            let activePowerUps = [];
+            let powerUpCooldowns = {
+                multiplier: 0,
+                speedBoost: 0
+            };
+            let extraLifeGlowTimer = 0;
+            const powerUpDuration = 900;
+            const powerUpCooldown = 600;
+            const maxLives = 10;
+
+            const spikeVisualHeight = 120;
+            const spikeAspectRatio = 100 / 200;
+            const spikeScaledHeight = (pipeWidth / spikeAspectRatio) * (spikeVisualHeight / 200);
+
+            const backgroundSpeed = 0.8;
+            let backgroundX = 0;
+
+            let particles = [];
+
+            let isSpacePressed = false;
+            let isTouchHeld = false;
+            let lastFrameTime = performance.now();
+            const targetFrameTime = 1000 / 60;
+
+            const isAndroid = /Android/i.test(navigator.userAgent);
+
+            colorblindMode = localStorage.getItem('colorblindMode') === 'true';
+            colorblindToggle.textContent = `Colorblind Mode: ${colorblindMode ? 'On' : 'Off'}`;
+
+            const birdFramesNormal = [
+                new Image(),
+                new Image(),
+                new Image()
+            ];
+            birdFramesNormal[0].src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30">
+                    <defs>
+                        <radialGradient id="birdGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#ff8c00" />
+                            <stop offset="100%" stop-color="#ff4500" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="20" cy="15" rx="18" ry="12" fill="url(#birdGlow)" />
+                    <ellipse cx="30" cy="12" rx="8" ry="5" fill="#ffa500" />
+                    <circle cx="32" cy="10" r="2" fill="white" />
+                    <circle cx="32" cy="10" r="1" fill="black" />
+                    <path d="M 10 18 L 5 22 L 10 20 Z" fill="#ffa500" />
+                    <path d="M 10 12 L 5 8 L 10 10 Z" fill="#ffa500" />
+                </svg>
+            `);
+            birdFramesNormal[1].src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30">
+                    <defs>
+                        <radialGradient id="birdGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#ff8c00" />
+                            <stop offset="100%" stop-color="#ff4500" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="20" cy="15" rx="18" ry="12" fill="url(#birdGlow)" />
+                    <ellipse cx="30" cy="12" rx="8" ry="5" fill="#ffa500" />
+                    <circle cx="32" cy="10" r="2" fill="white" />
+                    <circle cx="32" cy="10" r="1" fill="black" />
+                    <path d="M 10 20 L 5 24 L 10 22 Z" fill="#ffa500" />
+                    <path d="M 10 10 L 5 6 L 10 8 Z" fill="#ffa500" />
+                </svg>
+            `);
+            birdFramesNormal[2].src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30">
+                    <defs>
+                        <radialGradient id="birdGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#ff8c00" />
+                            <stop offset="100%" stop-color="#ff4500" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="20" cy="15" rx="18" ry="12" fill="url(#birdGlow)" />
+                    <ellipse cx="30" cy="12" rx="8" ry="5" fill="#ffa500" />
+                    <circle cx="32" cy="10" r="2" fill="white" />
+                    <circle cx="32" cy="10" r="1" fill="black" />
+                    <path d="M 10 16 L 5 20 L 10 18 Z" fill="#ffa500" />
+                    <path d="M 10 14 L 5 10 L 10 12 Z" fill="#ffa500" />
+                </svg>
+            `);
+
+            const birdFramesColorblind = [
+                new Image(),
+                new Image(),
+                new Image()
+            ];
+            birdFramesColorblind[0].src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30">
+                    <defs>
+                        <radialGradient id="birdGlowCB" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#40E0D0" />
+                            <stop offset="100%" stop-color="#00CED1" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="20" cy="15" rx="18" ry="12" fill="url(#birdGlowCB)" />
+                    <ellipse cx="30" cy="12" rx="8" ry="5" fill="#48D1CC" />
+                    <circle cx="32" cy="10" r="2" fill="white" />
+                    <circle cx="32" cy="10" r="1" fill="black" />
+                    <path d="M 10 18 L 5 22 L 10 20 Z" fill="#48D1CC" />
+                    <path d="M 10 12 L 5 8 L 10 10 Z" fill="#48D1CC" />
+                </svg>
+            `);
+            birdFramesColorblind[1].src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30">
+                    <defs>
+                        <radialGradient id="birdGlowCB" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#40E0D0" />
+                            <stop offset="100%" stop-color="#00CED1" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="20" cy="15" rx="18" ry="12" fill="url(#birdGlowCB)" />
+                    <ellipse cx="30" cy="12" rx="8" ry="5" fill="#48D1CC" />
+                    <circle cx="32" cy="10" r="2" fill="white" />
+                    <circle cx="32" cy="10" r="1" fill="black" />
+                    <path d="M 10 20 L 5 24 L 10 22 Z" fill="#48D1CC" />
+                    <path d="M 10 10 L 5 6 L 10 8 Z" fill="#48D1CC" />
+                </svg>
+            `);
+            birdFramesColorblind[2].src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30">
+                    <defs>
+                        <radialGradient id="birdGlowCB" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#40E0D0" />
+                            <stop offset="100%" stop-color="#00CED1" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="20" cy="15" rx="18" ry="12" fill="url(#birdGlowCB)" />
+                    <ellipse cx="30" cy="12" rx="8" ry="5" fill="#48D1CC" />
+                    <circle cx="32" cy="10" r="2" fill="white" />
+                    <circle cx="32" cy="10" r="1" fill="black" />
+                    <path d="M 10 16 L 5 20 L 10 18 Z" fill="#48D1CC" />
+                    <path d="M 10 14 L 5 10 L 10 12 Z" fill="#48D1CC" />
+                </svg>
+            `);
+
+            const birdFrames = colorblindMode ? birdFramesColorblind : birdFramesNormal;
+
+            const topSpikesImg = new Image();
+            topSpikesImg.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200">
+                    <defs>
+                        <linearGradient id="spikeGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="#FF8C00" />
+                            <stop offset="50%" stop-color="#A52A2A" />
+                            <stop offset="100%" stop-color="#5A2E0F" />
+                        </linearGradient>
+                        <linearGradient id="glowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#FFFF00" />
+                            <stop offset="100%" stop-color="#FF4500" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 0 0 L 100 0 L 50 200 Z" fill="url(#spikeGradient)" />
+                    <path d="M 40 180 L 60 180 L 58 200 L 42 200 Z" fill="url(#glowGradient)" />
+                    <path d="M 30 50 L 40 70 L 35 60 Z" fill="#FF4500" />
+                    <path d="M 60 80 L 70 100 L 65 90 Z" fill="#FF4500" />
+                </svg>
+            `);
+
+            const volcanoBottomImg = new Image();
+            volcanoBottomImg.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200">
+                    <defs>
+                        <linearGradient id="volcanoGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="#5A2E0F" />
+                            <stop offset="50%" stop-color="#A52A2A" />
+                            <stop offset="100%" stop-color="#FF8C00" />
+                        </linearGradient>
+                        <linearGradient id="glowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#FFFF00" />
+                            <stop offset="100%" stop-color="#FF4500" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 0 200 L 100 200 L 50 0 Z" fill="url(#volcanoGradient)" />
+                    <path d="M 30 0 L 70 0 L 68 20 L 32 20 Z" fill="url(#glowGradient)" />
+                    <path d="M 40 20 L 45 40 L 50 20 Z" fill="#FF4500" />
+                    <path d="M 35 50 L 40 70 L 45 50 Z" fill="#FF4500" />
+                    <path d="M 20 100 L 30 120 L 25 110 Z" fill="#FFFF00" />
+                    <path d="M 60 130 L 70 150 L 65 140 Z" fill="#FFFF00" />
+                    <path d="M 10 150 L 20 170 L 15 160 Z" fill="#FF4500" />
+                    <path d="M 80 150 L 90 170 L 85 160 Z" fill="#FF4500" />
+                </svg>
+            `);
+
+            const powerUpInvincibilityImgNormal = new Image();
+            powerUpInvincibilityImgNormal.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+                    <defs>
+                        <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#FFFF00" />
+                            <stop offset="100%" stop-color="#FF8C00" />
+                        </radialGradient>
+                    </defs>
+                    <path d="M15 3 L18 12 L27 12 L20 18 L23 27 L15 21 L7 27 L10 18 L3 12 L12 12 Z" fill="url(#starGlow)" />
+                </svg>
+            `);
+
+            const powerUpMultiplierImgNormal = new Image();
+            powerUpMultiplierImgNormal.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+                    <defs>
+                        <radialGradient id="coinGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#FFD700" />
+                            <stop offset="100%" stop-color="#FFA500" />
+                        </radialGradient>
+                    </defs>
+                    <circle cx="15" cy="15" r="15" fill="url(#coinGlow)" />
+                    <text x="15" y="20" font-size="12" fill="white" text-anchor="middle">2x</text>
+                </svg>
+            `);
+
+            const powerUpSpeedBoostImgNormal = new Image();
+            powerUpSpeedBoostImgNormal.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+                    <defs>
+                        <linearGradient id="arrowGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#00BFFF" />
+                            <stop offset="100%" stop-color="#9932CC" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M5 15 L20 5 L20 12 L25 15 L20 18 L20 25 Z" fill="url(#arrowGlow)" />
+                </svg>
+            `);
+
+            const powerUpExtraLifeImg = new Image();
+            powerUpExtraLifeImg.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+                    <defs>
+                        <radialGradient id="heartGlow" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#FF69B4" />
+                            <stop offset="100%" stop-color="#FF0000" />
+                        </radialGradient>
+                    </defs>
+                    <path d="M15 5 Q5 0 5 15 Q15 30 25 15 Q25 0 15 5 Z" fill="url(#heartGlow)" />
+                </svg>
+            `);
+
+            const powerUpInvincibilityImgColorblind = new Image();
+            powerUpInvincibilityImgColorblind.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+                    <defs>
+                        <radialGradient id="starGlowCB" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#FFFF00" />
+                            <stop offset="100%" stop-color="#FFD700" />
+                        </radialGradient>
+                    </defs>
+                    <path d="M15 3 L18 12 L27 12 L20 18 L23 27 L15 21 L7 27 L10 18 L3 12 L12 12 Z" fill="url(#starGlowCB)" />
+                </svg>
+            `);
+
+            const powerUpMultiplierImgColorblind = new Image();
+            powerUpMultiplierImgColorblind.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+                    <defs>
+                        <radialGradient id="coinGlowCB" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#00BFFF" />
+                            <stop offset="100%" stop-color="#4682B4" />
+                        </radialGradient>
+                    </defs>
+                    <circle cx="15" cy="15" r="15" fill="url(#coinGlowCB)" />
+                    <text x="15" y="20" font-size="12" fill="white" text-anchor="middle">2x</text>
+                </svg>
+            `);
+
+            const powerUpSpeedBoostImgColorblind = new Image();
+            powerUpSpeedBoostImgColorblind.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+                    <defs>
+                        <linearGradient id="arrowGlowCB" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#9932CC" />
+                            <stop offset="100%" stop-color="#4B0082" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M5 15 L20 5 L20 12 L25 15 L20 18 L20 25 Z" fill="url(#arrowGlowCB)" />
+                </svg>
+            `);
+
+            const powerUpInvincibilityImg = colorblindMode ? powerUpInvincibilityImgColorblind : powerUpInvincibilityImgNormal;
+            const powerUpMultiplierImg = colorblindMode ? powerUpMultiplierImgColorblind : powerUpMultiplierImgNormal;
+            const powerUpSpeedBoostImg = colorblindMode ? powerUpSpeedBoostImgColorblind : powerUpSpeedBoostImgNormal;
+
+            const backgroundImg = new Image();
+            backgroundImg.src = 'data:image/svg+xml;base64,' + safeBtoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+                    <defs>
+                        <radialGradient id="lavaGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                            <stop offset="0%" stop-color="#FFFF00" />
+                            <stop offset="50%" stop-color="#FF8C00" />
+                            <stop offset="100%" stop-color="#FF4500" />
+                        </radialGradient>
+                    </defs>
+                    <rect width="800" height="600" fill="url(#lavaGlow)" />
+                    <path d="M 0 500 C 200 450 400 550 400 500 C 400 450 600 550 800 500 L 800 600 L 0 600 Z" fill="#8B4513" />
+                    <circle cx="100" cy="520" r="10" fill="#FF4500" />
+                    <circle cx="300" cy="530" r="8" fill="#FF4500" />
+                    <circle cx="500" cy="525" r="12" fill="#FF4500" />
+                    <circle cx="700" cy="515" r="9" fill="#FF4500" />
+                </svg>
+            `);
+
+            let imagesLoaded = 0;
+            const totalImages = 11;
+
+            function checkAssetsLoaded() {
+                if (imagesLoaded === totalImages) {
+                    loadingScreen.style.display = 'none';
+                    startScreen.style.display = 'flex';
+                    drawBackground();
+                    drawBird();
+                }
+            }
+
+            birdFramesNormal.forEach((img, index) => {
+                img.onload = () => { imagesLoaded++; checkAssetsLoaded(); };
+                img.onerror = () => { console.error(`Failed to load bird frame (normal, index ${index})`); imagesLoaded++; checkAssetsLoaded(); };
+            });
+            birdFramesColorblind.forEach((img, index) => {
+                img.onload = () => { imagesLoaded++; checkAssetsLoaded(); };
+                img.onerror = () => { console.error(`Failed to load bird frame (colorblind, index ${index})`); imagesLoaded++; checkAssetsLoaded(); };
+            });
+            topSpikesImg.onload = () => { imagesLoaded++; checkAssetsLoaded(); };
+            topSpikesImg.onerror = () => { console.error("Failed to load topSpikesImg"); imagesLoaded++; checkAssetsLoaded(); };
+            volcanoBottomImg.onload = () => { imagesLoaded++; checkAssetsLoaded(); };
+            volcanoBottomImg.onerror = () => { console.error("Failed to load volcanoBottomImg"); imagesLoaded++; checkAssetsLoaded(); };
+            powerUpInvincibilityImgNormal.onload = () => { imagesLoaded++; checkAssetsLoaded(); };
+            powerUpInvincibilityImgNormal.onerror = () => { console.error("Failed to load powerUpInvincibilityImg"); imagesLoaded++; checkAssetsLoaded(); };
+            powerUpMultiplierImgNormal.onload = () => { imagesLoaded++; checkAssetsLoaded(); };
+            powerUpMultiplierImgNormal.onerror = () => { console.error("Failed to load powerUpMultiplierImg"); imagesLoaded++; checkAssetsLoaded(); };
+            powerUpSpeedBoostImgNormal.onload = () => { imagesLoaded++; checkAssetsLoaded(); };
+            powerUpSpeedBoostImgNormal.onerror = () => { console.error("Failed to load powerUpSpeedBoostImg"); imagesLoaded++; checkAssetsLoaded(); };
+            powerUpExtraLifeImg.onload = () => { imagesLoaded++; checkAssetsLoaded(); };
+            powerUpExtraLifeImg.onerror = () => { console.error("Failed to load powerUpExtraLifeImg"); imagesLoaded++; checkAssetsLoaded(); };
+            backgroundImg.onload = () => { imagesLoaded++; checkAssetsLoaded(); };
+            backgroundImg.onerror = () => { console.error("Failed to load backgroundImg"); imagesLoaded++; checkAssetsLoaded(); };
+
+            difficultyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    difficulty = button.dataset.difficulty;
+                    if (difficulty === 'custom') {
+                        customSettings.style.display = 'flex';
+                        pipeGap = parseInt(pipeGapSlider.value);
+                        pipeSpeed = parseFloat(pipeSpeedSlider.value);
+                    } else {
+                        customSettings.style.display = 'none';
+                        pipeGap = difficultySettings[difficulty].pipeGap;
+                        pipeSpeed = difficultySettings[difficulty].pipeSpeed;
+                    }
+                    bestScoreElement.textContent = bestScores[difficulty] || 0;
+                    startBestScoreElement.textContent = bestScores[difficulty] || 0;
+                    startGame();
+                });
+            });
+
+            pipeGapSlider.addEventListener('input', () => {
+                pipeGapValue.textContent = pipeGapSlider.value;
+                localStorage.setItem('customSettings', JSON.stringify({
+                    pipeGap: parseInt(pipeGapSlider.value),
+                    pipeSpeed: parseFloat(pipeSpeedSlider.value)
+                }));
+            });
+
+            pipeSpeedSlider.addEventListener('input', () => {
+                pipeSpeedValue.textContent = pipeSpeedSlider.value;
+                localStorage.setItem('customSettings', JSON.stringify({
+                    pipeGap: parseInt(pipeGapSlider.value),
+                    pipeSpeed: parseFloat(pipeSpeedSlider.value)
+                }));
+            });
+
+            resetScoreButton.addEventListener('click', () => {
+                bestScores = { easy: 0, medium: 0, hard: 0, custom: 0 };
+                localStorage.setItem('bestScores', JSON.stringify(bestScores));
+                bestScoreElement.textContent = 0;
+                startBestScoreElement.textContent = 0;
+                finalBestScoreElement.textContent = 0;
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    isSpacePressed = true;
+                    if (!gameStarted && startScreen.style.display !== 'flex') {
+                        startScreen.style.display = 'none';
+                        startGame();
+                    } else if (gameOver) {
+                        resetGame();
+                    }
+                } else if (e.code === 'KeyP' && gameStarted && !gameOver) {
+                    togglePause();
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                if (e.code === 'Space') {
+                    isSpacePressed = false;
+                }
+            });
+
+            canvas.addEventListener('click', () => {
+                if (!gameStarted && startScreen.style.display !== 'flex') {
+                    startScreen.style.display = 'none';
+                    startGame();
+                } else if (!gameOver && !paused && !isAndroid) {
+                    bird.velocity = bird.jump;
+                } else if (gameOver) {
+                    resetGame();
+                }
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!gameStarted && startScreen.style.display !== 'flex') {
+                    startScreen.style.display = 'none';
+                    startGame();
+                } else if (!gameOver && !paused) {
+                    if (isAndroid) {
+                        isTouchHeld = true;
+                    } else {
+                        bird.velocity = bird.jump;
+                    }
+                } else if (gameOver) {
+                    resetGame();
+                }
+            });
+
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (isAndroid && !gameOver && !paused) {
+                    isTouchHeld = false;
+                }
+            });
+
+            pauseButton.addEventListener('click', togglePause);
+
+            pauseButton.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                togglePause();
+            });
+
+            restartButton.addEventListener('click', resetGame);
+
+            homeButton.addEventListener('click', () => {
+                gameOverScreen.style.display = 'none';
+                startScreen.style.display = 'flex';
+                gameOver = false;
+                gameStarted = false;
+                resetGame(false);
+            });
+
+            resumeButton.addEventListener('click', togglePause);
+
+            restartPauseButton.addEventListener('click', () => {
+                togglePause();
+                resetGame();
+            });
+
+            homePauseButton.addEventListener('click', () => {
+                togglePause();
+                pauseScreen.style.display = 'none';
+                startScreen.style.display = 'flex';
+                gameOver = false;
+                gameStarted = false;
+                resetGame(false);
+            });
+
+            colorblindToggle.addEventListener('click', () => {
+                colorblindMode = !colorblindMode;
+                localStorage.setItem('colorblindMode', colorblindMode);
+                colorblindToggle.textContent = `Colorblind Mode: ${colorblindMode ? 'On' : 'Off'}`;
+                colorblindPauseToggle.textContent = `Colorblind Mode: ${colorblindMode ? 'On' : 'Off'}`;
+                location.reload();
+            });
+
+            colorblindPauseToggle.addEventListener('click', () => {
+                colorblindMode = !colorblindMode;
+                localStorage.setItem('colorblindMode', colorblindMode);
+                colorblindToggle.textContent = `Colorblind Mode: ${colorblindMode ? 'On' : 'Off'}`;
+                colorblindPauseToggle.textContent = `Colorblind Mode: ${colorblindMode ? 'On' : 'Off'}`;
+                location.reload();
+            });
+
+            function togglePause() {
+                if (!gameStarted || gameOver) return;
+                paused = !paused;
+                pauseScreen.style.display = paused ? 'flex' : 'none';
+                pauseButton.style.display = paused ? 'none' : 'flex';
+                if (!paused) {
+                    lastFrameTime = performance.now();
+                    gameLoop();
+                }
+            }
+
+            function startGame() {
+                resetGame(true);
+                gameStarted = true;
+                gameOver = false;
+                paused = false;
+                startScreen.style.display = 'none';
+                pauseButton.style.display = 'flex';
+                gameLoop();
+            }
+
+            function resetGame(startLoop = true) {
+                bird.y = canvasHeight / 2;
+                bird.velocity = 0;
+                bird.flapFrame = 0;
+                bird.flapTimer = 0;
+                bird.speedMultiplier = 1;
+                bird.baseSpeed = 0.5;
+                pipes = [];
+                powerUps = [];
+                particles = [];
+                sparkParticles = [];
+                activePowerUps = [];
+                powerUpCooldowns = { multiplier: 0, speedBoost: 0 };
+                extraLifeGlowTimer = 0;
+                powerUpAnimationTimer = 0;
+                score = 0;
+                lives = 3;
+                speedIncreaseCounter = 0;
+                difficultyIncreaseCounter = 0;
+                pipeGap = difficulty === 'custom' ? parseInt(pipeGapSlider.value) : difficultySettings[difficulty].pipeGap;
+                pipeSpeed = difficulty === 'custom' ? parseFloat(pipeSpeedSlider.value) : difficultySettings[difficulty].pipeSpeed;
+                scoreElement.textContent = score;
+                bestScoreElement.textContent = bestScores[difficulty] || 0;
+                livesElement.textContent = lives;
+                gameOver = false;
+                paused = false;
+                gameOverScreen.style.display = 'none';
+                pauseScreen.style.display = 'none';
+                pauseButton.style.display = startLoop ? 'flex' : 'none';
+                backgroundX = 0;
+                isTouchHeld = false;
+                isSpacePressed = false;
+                if (startLoop) {
+                    lastFrameTime = performance.now();
+                    gameLoop();
+                }
+            }
+
+            function createPipe() {
+                const minHeight = 200;
+                const maxHeight = canvasHeight - pipeGap - 100;
+                const height = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+                
+                pipes.push({
+                    x: canvasWidth,
+                    y: 0,
+                    width: pipeWidth,
+                    height: height,
+                    passed: false
+                });
+            }
+
+            function spawnPowerUp() {
+                const latestPipe = pipes[pipes.length - 1];
+                let yPosition = canvasHeight / 2;
+                if (latestPipe) {
+                    yPosition = latestPipe.height + pipeGap / 2;
+                }
+                const types = ['invincibility', 'multiplier', 'speedBoost', 'extraLife'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                powerUps.push({
+                    x: canvasWidth,
+                    y: yPosition,
+                    width: 30,
+                    height: 30,
+                    type: type
+                });
+                nextPowerUpSpawn = Math.floor(Math.random() * (powerUpSpawnIntervalMax - powerUpSpawnIntervalMin + 1)) + powerUpSpawnIntervalMin;
+            }
+
+            function createParticle(x, y, color, type = 'trail') {
+                const particle = {
+                    x: x,
+                    y: y,
+                    size: type === 'trail' ? Math.random() * 3 + 1 : Math.random() * 5 + 2,
+                    vx: type === 'trail' ? -(Math.random() * 1 + 0.5) : (Math.random() * 2 - 1),
+                    vy: type === 'trail' ? (Math.random() * 2 - 1) : (Math.random() * 2 - 1),
+                    lifetime: type === 'trail' ? 20 : 30,
+                    color: color,
+                    alpha: 1
+                };
+                particles.push(particle);
+            }
+
+            function createSparkParticle(x, y, color) {
+                const particle = {
+                    x: x,
+                    y: y,
+                    size: Math.random() * 2 + 1,
+                    vx: (Math.random() * 2 - 1) * 0.5,
+                    vy: -(Math.random() * 1 + 0.5),
+                    lifetime: 40,
+                    color: color,
+                    alpha: 1
+                };
+                sparkParticles.push(particle);
+            }
+
+            function updateParticles(delta) {
+                particles.forEach((particle, index) => {
+                    particle.x -= (bird.baseSpeed * bird.speedMultiplier) * delta;
+                    particle.x += particle.vx * delta;
+                    particle.y += particle.vy * delta;
+                    particle.lifetime -= delta;
+                    particle.alpha = particle.lifetime / 30;
+                    if (particle.lifetime <= 0) {
+                        particles.splice(index, 1);
+                    }
+                });
+
+                sparkParticles.forEach((particle, index) => {
+                    particle.x += particle.vx * delta;
+                    particle.y += particle.vy * delta;
+                    particle.lifetime -= delta;
+                    particle.alpha = particle.lifetime / 40;
+                    if (particle.lifetime <= 0) {
+                        sparkParticles.splice(index, 1);
+                    }
+                });
+            }
+
+            function drawParticles() {
+                particles.forEach(particle => {
+                    ctx.fillStyle = `rgba(${particle.color}, ${particle.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+
+                sparkParticles.forEach(particle => {
+                    ctx.fillStyle = `rgba(${particle.color}, ${particle.alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+            }
+
+            function drawBackground() {
+                if (backgroundImg.complete) {
+                    backgroundX = backgroundX % canvasWidth;
+                    if (backgroundX > 0) backgroundX -= canvasWidth;
+
+                    ctx.save();
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    const scaledWidth = canvasWidth * dpr;
+                    const scaledHeight = canvasHeight * dpr;
+                    const xStart = Math.round(backgroundX * dpr);
+
+                    for (let x = xStart; x < scaledWidth + scaledWidth; x += scaledWidth - 1) {
+                        ctx.drawImage(backgroundImg, x, 0, scaledWidth, scaledHeight);
+                    }
+                    ctx.restore();
+
+                    if (Math.random() < 0.1) {
+                        createSparkParticle(Math.random() * canvasWidth, canvasHeight - 50, '255, 165, 0');
+                    }
+                } else {
+                    ctx.fillStyle = '#FF4500';
+                    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                }
+
+                backgroundX -= (backgroundSpeed + bird.baseSpeed * bird.speedMultiplier);
+            }
+
+            function drawLevel() {
+                ctx.font = '20px Arial';
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = '#ff4500';
+                ctx.lineWidth = 1;
+                ctx.textAlign = 'left';
+                const capitalizedDifficulty = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+                ctx.fillText(`Level: ${capitalizedDifficulty}`, 10, 30);
+                ctx.strokeText(`Level: ${capitalizedDifficulty}`, 10, 30);
+
+                const powerUpTypes = ['invincibility', 'multiplier', 'speedBoost', 'extraLife'];
+                const iconSize = 20;
+                const iconSpacing = 5;
+                let yOffset = 50;
+
+                powerUpTypes.forEach((type, index) => {
+                    let img;
+                    let fillColor;
+                    if (type === 'invincibility') {
+                        img = powerUpInvincibilityImg;
+                        fillColor = 'yellow';
+                    } else if (type === 'multiplier') {
+                        img = powerUpMultiplierImg;
+                        fillColor = colorblindMode ? 'blue' : 'gold';
+                    } else if (type === 'speedBoost') {
+                        img = powerUpSpeedBoostImg;
+                        fillColor = colorblindMode ? 'purple' : 'blue';
+                    } else {
+                        img = powerUpExtraLifeImg;
+                        fillColor = 'pink';
+                    }
+
+                    const x = 10;
+                    const y = yOffset + index * (iconSize + iconSpacing);
+
+                    if (img.complete) {
+                        ctx.drawImage(img, x, y, iconSize, iconSize);
+                    } else {
+                        ctx.fillStyle = fillColor;
+                        ctx.fillRect(x, y, iconSize, iconSize);
+                    }
+
+                    if (type === 'extraLife' && extraLifeGlowTimer > 0) {
+                        ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                        ctx.fillRect(x - 2, y - 2, iconSize + 4, iconSize + 4);
+                    } else if (type !== 'extraLife' && activePowerUps.some(powerUp => powerUp.type === type)) {
+                        ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                        ctx.fillRect(x - 2, y - 2, iconSize + 4, iconSize + 4);
+                    }
+
+                    if ((type === 'multiplier' || type === 'speedBoost') && powerUpCooldowns[type] > 0) {
+                        const cooldownFraction = powerUpCooldowns[type] / powerUpCooldown;
+                        const overlayHeight = iconSize * cooldownFraction;
+                        ctx.fillStyle = 'rgba(128, 128, 128, 0.5)';
+                        ctx.fillRect(x, y + iconSize - overlayHeight, iconSize, overlayHeight);
+                    }
+                });
+
+                if (difficultyMessage) {
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.8)';
+                    ctx.strokeStyle = '#ff4500';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(difficultyMessage, canvasWidth / 2, canvasHeight / 2);
+                    ctx.strokeText(difficultyMessage, canvasWidth / 2, canvasHeight / 2);
+                    ctx.textAlign = 'left';
+                }
+            }
+
+            function drawBird() {
+                const frames = colorblindMode ? birdFramesColorblind : birdFramesNormal;
+                ctx.save();
+                if (gameStarted && !gameOver && !paused) {
+                    ctx.beginPath();
+                    ctx.arc(bird.x + bird.width / 2, bird.y + bird.height / 2, bird.width * 0.7, 0, 2 * Math.PI);
+                    ctx.fillStyle = colorblindMode ? 'rgba(0, 206, 209, 0.3)' : 'rgba(255, 165, 0, 0.3)';
+                    ctx.fill();
+                }
+                if (frames[bird.flapFrame].complete) {
+                    ctx.drawImage(frames[bird.flapFrame], bird.x, bird.y, bird.width, bird.height);
+                } else {
+                    ctx.fillStyle = colorblindMode ? '#00CED1' : '#FF4500';
+                    ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+                }
+                ctx.restore();
+
+                if (activePowerUps.some(powerUp => powerUp.type === 'invincibility')) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(bird.x + bird.width / 2, bird.y + bird.height / 2, bird.width * 1.2, 0, 2 * Math.PI);
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.4)';
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                for (let i = 0; i < Math.min(lives, maxLives); i++) {
+                    const x = canvasWidth - (i + 1) * 30 - 10;
+                    const y = 10;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(x - 2, y - 2, 24, 24);
+                    ctx.strokeStyle = 'rgba(255, 165, 0, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    if (powerUpExtraLifeImg.complete) {
+                        ctx.drawImage(powerUpExtraLifeImg, x, y, 20, 20);
+                    } else {
+                        ctx.fillStyle = 'pink';
+                        ctx.fillRect(x, y, 20, 20);
+                    }
+                    ctx.restore();
+                }
+            }
+
+            function drawPipes() {
+                pipes.forEach(pipe => {
+                    const topVolcanoBottom = pipe.height;
+                    const topVolcanoTop = topVolcanoBottom - spikeScaledHeight;
+                    const bottomVolcanoTop = pipe.height + pipeGap;
+
+                    ctx.save();
+                    if (topSpikesImg.complete) {
+                        ctx.drawImage(topSpikesImg, pipe.x, 0, pipeWidth, topVolcanoTop);
+                    } else {
+                        ctx.fillStyle = '#5A2E0F';
+                        ctx.fillRect(pipe.x, 0, pipeWidth, topVolcanoTop);
+                    }
+
+                    if (volcanoBottomImg.complete) {
+                        const volcanoHeight = canvasHeight - bottomVolcanoTop;
+                        ctx.drawImage(volcanoBottomImg, pipe.x, bottomVolcanoTop, pipeWidth, volcanoHeight);
+                    } else {
+                        ctx.fillStyle = '#5A2E0F';
+                        ctx.fillRect(pipe.x, bottomVolcanoTop, pipeWidth, canvasHeight - bottomVolcanoTop);
+                    }
+                    ctx.restore();
+
+                    if (Math.random() < 0.05) {
+                        createSparkParticle(pipe.x + pipeWidth / 2, topVolcanoBottom, '128, 128, 128');
+                        createSparkParticle(pipe.x + pipeWidth / 2, bottomVolcanoTop, '128, 128, 128');
+                    }
+                });
+            }
+
+            function drawPowerUps() {
+                powerUps.forEach(powerUp => {
+                    let img;
+                    if (powerUp.type === 'invincibility') img = powerUpInvincibilityImg;
+                    else if (powerUp.type === 'multiplier') img = powerUpMultiplierImg;
+                    else if (powerUp.type === 'speedBoost') img = powerUpSpeedBoostImg;
+                    else img = powerUpExtraLifeImg;
+
+                    ctx.save();
+                    const frame = Math.floor(powerUpAnimationTimer / 10) % 6;
+                    let scale = 1;
+                    let rotation = 0;
+                    let yOffset = 0;
+
+                    if (powerUp.type === 'invincibility') {
+                        scale = 0.9 + 0.2 * Math.sin(powerUpAnimationTimer / 30 * Math.PI);
+                    } else if (powerUp.type === 'multiplier') {
+                        rotation = (powerUpAnimationTimer % 60) / 60 * 2 * Math.PI;
+                    } else if (powerUp.type === 'speedBoost') {
+                        if (Math.random() < 0.2) {
+                            createParticle(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2, colorblindMode ? '75, 0, 130' : '0, 191, 255', 'trail');
+                        }
+                    } else if (powerUp.type === 'extraLife') {
+                        yOffset = 5 * Math.sin(powerUpAnimationTimer / 20 * Math.PI);
+                    }
+
+                    ctx.translate(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2 + yOffset);
+                    ctx.scale(scale, scale);
+                    ctx.rotate(rotation);
+
+                    if (img.complete) {
+                        ctx.drawImage(img, -powerUp.width / 2, -powerUp.height / 2, powerUp.width, powerUp.height);
+                    } else {
+                        ctx.fillStyle = powerUp.type === 'invincibility' ? 'yellow' :
+                                       powerUp.type === 'multiplier' ? (colorblindMode ? 'blue' : 'gold') :
+                                       powerUp.type === 'speedBoost' ? (colorblindMode ? 'purple' : 'blue') : 'pink';
+                        ctx.fillRect(-powerUp.width / 2, -powerUp.height / 2, powerUp.width, powerUp.height);
+                    }
+                    ctx.restore();
+                });
+            }
+
+            function updateBird(delta) {
+                if (!(isAndroid && isTouchHeld) && !(!isAndroid && isSpacePressed)) {
+                    bird.velocity += bird.gravity * delta;
+                } else {
+                    bird.velocity += bird.holdJump * delta; // Accelerate upward
+                }
+
+                // Cap velocity to prevent excessive speed
+                bird.velocity = Math.max(-bird.maxVelocity, Math.min(bird.maxVelocity, bird.velocity));
+
+                bird.y += bird.velocity * delta;
+
+                bird.flapTimer += delta;
+                if (bird.flapTimer >= bird.flapInterval) {
+                    bird.flapFrame = (bird.flapFrame + 1) % birdFrames.length;
+                    bird.flapTimer = 0;
+                }
+
+                if (Math.random() < 0.3 && gameStarted && !gameOver && !paused) {
+                    createParticle(bird.x, bird.y + bird.height / 2, colorblindMode ? '0, 206, 209' : '255, 165, 0', 'trail');
+                }
+
+                if (bird.y + bird.height >= canvasHeight || bird.y <= 0) {
+                    if (activePowerUps.some(powerUp => powerUp.type === 'invincibility')) {
+                        activePowerUps = activePowerUps.filter(powerUp => powerUp.type !== 'invincibility');
+                        for (let i = 0; i < 10; i++) {
+                            createParticle(bird.x + bird.width / 2, bird.y + bird.height / 2, '255, 255, 0', 'burst');
+                        }
+                        if (bird.y + bird.height >= canvasHeight) {
+                            bird.y = canvasHeight - bird.height - 1;
+                            bird.velocity = -bird.velocity * 0.5;
+                        } else if (bird.y <= 0) {
+                            bird.y = 1;
+                            bird.velocity = -bird.velocity * 0.5;
+                        }
+                    } else {
+                        lives--;
+                        livesElement.textContent = lives;
+                        if (lives <= 0) {
+                            gameOver = true;
+                        } else {
+                            bird.y = canvasHeight / 2;
+                            bird.velocity = 0;
+                        }
+                    }
+                }
+            }
+
+            function updatePipes(delta) {
+                pipeSpawnTimer += delta;
+                if (pipeSpawnTimer >= pipeSpawnInterval) {
+                    createPipe();
+                    pipeSpawnTimer = 0;
+                }
+
+                powerUpSpawnTimer += delta;
+                if (powerUpSpawnTimer >= nextPowerUpSpawn) {
+                    spawnPowerUp();
+                    powerUpSpawnTimer = 0;
+                }
+
+                const moveSpeed = (pipeSpeed + bird.baseSpeed * bird.speedMultiplier) * delta;
+                pipes.forEach(pipe => {
+                    pipe.x -= moveSpeed;
+                });
+
+                powerUps.forEach(powerUp => {
+                    powerUp.x -= moveSpeed;
+                });
+
+                pipes.forEach(pipe => {
+                    if (!pipe.passed && pipe.x + pipe.width < bird.x) {
+                        pipe.passed = true;
+                        const multiplier = activePowerUps.some(powerUp => powerUp.type === 'multiplier') ? 2 : 1;
+                        score += multiplier;
+                        scoreElement.textContent = score;
+
+                        if (score >= speedIncreaseCounter + 50) {
+                            bird.baseSpeed += 0.1;
+                            speedIncreaseCounter += 50;
+                        }
+                    }
+
+                    if (bird.x + bird.width > pipe.x && bird.x < pipe.x + pipe.width) {
+                        const topVolcanoTop = pipe.height - spikeScaledHeight;
+                        const bottomVolcanoTop = pipe.height + pipeGap;
+                        if (bird.y < topVolcanoTop || bird.y + bird.height > bottomVolcanoTop) {
+                            if (activePowerUps.some(powerUp => powerUp.type === 'invincibility')) {
+                                activePowerUps = activePowerUps.filter(powerUp => powerUp.type !== 'invincibility');
+                                for (let i = 0; i < 10; i++) {
+                                    createParticle(bird.x + bird.width / 2, bird.y + bird.height / 2, '255, 255, 0', 'burst');
+                                }
+                                bird.y = canvasHeight / 2;
+                                bird.velocity = 0;
+                            } else {
+                                lives--;
+                                livesElement.textContent = lives;
+                                if (lives <= 0) {
+                                    gameOver = true;
+                                } else {
+                                    bird.y = canvasHeight / 2;
+                                    bird.velocity = 0;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                powerUps.forEach((powerUp, index) => {
+                    if (bird.x + bird.width > powerUp.x && bird.x < powerUp.x + powerUp.width &&
+                        bird.y + bird.height > powerUp.y && bird.y < powerUp.y + powerUp.height) {
+                        let canActivate = powerUp.type === 'invincibility' || powerUp.type === 'extraLife' || powerUpCooldowns[powerUp.type] <= 0;
+                        if (canActivate) {
+                            if (powerUp.type === 'speedBoost') {
+                                const existingIndex = activePowerUps.findIndex(p => p.type === 'speedBoost');
+                                if (existingIndex !== -1) {
+                                    activePowerUps[existingIndex].timer = powerUpDuration;
+                                } else {
+                                    activePowerUps.push({ type: 'speedBoost', timer: powerUpDuration });
+                                    bird.speedMultiplier = 1.5;
+                                }
+                                powerUpCooldowns.speedBoost = powerUpCooldown;
+                            } else if (powerUp.type === 'extraLife') {
+                                if (lives < maxLives) {
+                                    lives++;
+                                    livesElement.textContent = lives;
+                                    extraLifeGlowTimer = 60;
+                                }
+                            } else if (powerUp.type === 'multiplier') {
+                                const existingIndex = activePowerUps.findIndex(p => p.type === 'multiplier');
+                                if (existingIndex !== -1) {
+                                    activePowerUps[existingIndex].timer = powerUpDuration;
+                                } else {
+                                    activePowerUps.push({ type: 'multiplier', timer: powerUpDuration });
+                                }
+                                powerUpCooldowns.multiplier = powerUpCooldown;
+                            } else if (powerUp.type === 'invincibility') {
+                                const existingIndex = activePowerUps.findIndex(p => p.type === 'invincibility');
+                                if (existingIndex !== -1) {
+                                    activePowerUps[existingIndex].timer = powerUpDuration;
+                                } else {
+                                    activePowerUps.push({ type: 'invincibility', timer: powerUpDuration });
+                                }
+                            }
+                            powerUps.splice(index, 1);
+                            const particleColor = powerUp.type === 'invincibility' ? '255, 255, 0' :
+                                                 powerUp.type === 'multiplier' ? (colorblindMode ? '0, 0, 255' : '255, 215, 0') :
+                                                 powerUp.type === 'speedBoost' ? (colorblindMode ? '128, 0, 128' : '0, 191, 255') : '255, 105, 180';
+                            for (let i = 0; i < 10; i++) {
+                                createParticle(powerUp.x + powerUp.width / 2, powerUp.y + powerUp.height / 2, particleColor, 'burst');
+                            }
+                        }
+                    }
+                });
+
+                activePowerUps.forEach((powerUp, index) => {
+                    powerUp.timer -= delta;
+                    if (powerUp.timer <= 0) {
+                        if (powerUp.type === 'speedBoost') {
+                            bird.speedMultiplier = 1;
+                        }
+                        activePowerUps.splice(index, 1);
+                    }
+                });
+
+                if (extraLifeGlowTimer > 0) {
+                    extraLifeGlowTimer -= delta;
+                }
+
+                for (let type in powerUpCooldowns) {
+                    if (powerUpCooldowns[type] > 0) {
+                        powerUpCooldowns[type] -= delta;
+                    }
+                }
+
+                pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
+                powerUps = powerUps.filter(powerUp => powerUp.x + powerUp.width > 0);
+
+                if (difficultyMessageTimer > 0) {
+                    difficultyMessageTimer -= delta;
+                    if (difficultyMessageTimer <= 0) {
+                        difficultyMessage = '';
+                    }
+                }
+            }
+
+            function gameLoop() {
+                if (paused || gameOver) return;
+
+                const now = performance.now();
+                let delta = (now - lastFrameTime) / (1000 / 60);
+                delta = Math.min(delta, 2);
+                lastFrameTime = now;
+
+                powerUpAnimationTimer += delta;
+
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+                drawBackground();
+                drawPipes();
+                drawPowerUps();
+                drawParticles();
+                drawBird();
+                if (gameStarted && !gameOver) {
+                    drawLevel();
+                }
+
+                if (!gameOver && !paused) {
+                    updateBird(delta);
+                    updatePipes(delta);
+                    updateParticles(delta);
+                    pauseButton.style.display = 'flex';
+                } else {
+                    pauseButton.style.display = 'none';
+                }
+
+                if (gameOver) {
+                    pauseButton.style.display = 'none';
+                    if (score > (bestScores[difficulty] || 0)) {
+                        bestScores[difficulty] = score;
+                        localStorage.setItem('bestScores', JSON.stringify(bestScores));
+                        bestScoreElement.textContent = bestScores[difficulty];
+                        startBestScoreElement.textContent = bestScores[difficulty];
+                        finalBestScoreElement.textContent = bestScores[difficulty];
+                    }
+                    finalScoreElement.textContent = score;
+                    gameOverScreen.style.display = 'flex';
+                } else {
+                    const elapsed = performance.now() - now;
+                    const delay = Math.max(0, targetFrameTime - elapsed);
+                    setTimeout(() => requestAnimationFrame(gameLoop), delay);
+                }
+            }
+
+            loadingScreen.style.display = 'flex';
+            startScreen.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM fully loaded. Initializing game...");
+            initializeGame();
+        });
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            console.log("Document already loaded. Initializing game immediately...");
+            initializeGame();
+        }
+    </script>
+</body>
+</html>
