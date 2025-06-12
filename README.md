@@ -12,7 +12,7 @@ Lives System: Players start with 3 lives, adding a challenge to avoid obstacles.
 
 Installation
 
-Clone the repository:git clone https://github.com/your-username/fiery-flappy-bird.git
+Clone the repository:git clone https://github.com/SaiKarthik547/fiery-flappy-bird.git
 
 
 Navigate to the project directory:cd fiery-flappy-bird
