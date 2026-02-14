@@ -1,56 +1,225 @@
-# Fiery-Flappy-Bird
+# 🔥 Fiery Flappy Bird --- Browser-Based Arcade Game
 
-Description
-Fiery Flappy Bird is a web-based game inspired by the classic Flappy Bird, built using HTML, CSS, and JavaScript. The game features a bird navigating through pipes with adjustable difficulty levels (Easy, Medium, Hard, Custom) and includes options like Colorblind Mode and score tracking. Players can pause, resume, restart, or return to the home screen, with lives and scoring mechanics enhancing the gameplay experience.
-Features
+Fiery Flappy Bird is a fully functional browser-based arcade game
+inspired by the classic Flappy Bird. The game is built using pure HTML,
+CSS, and JavaScript without any external libraries or frameworks.
 
-Multiple Difficulty Levels: Choose from Easy, Medium, Hard, or Custom modes with adjustable pipe gap and speed.
-Colorblind Mode: Toggle for accessibility.
-Score Tracking: Displays current score and best score, with an option to reset the best score.
-Game States: Includes game over, pause, and home screens with intuitive navigation.
-Lives System: Players start with 3 lives, adding a challenge to avoid obstacles.
+The project demonstrates core game development concepts including
+physics simulation, collision detection, game state management, dynamic
+obstacle generation, and score tracking. It is designed as a standalone
+frontend game that runs directly in the browser.
 
-Installation
+------------------------------------------------------------------------
 
-Clone the repository:git clone https://github.com/SaiKarthik547/fiery-flappy-bird.git
+# 📌 Overview
 
+Fiery Flappy Bird provides an interactive gaming experience where the
+player controls a bird navigating through pipes while avoiding
+collisions. The game includes multiple difficulty levels, a lives
+system, score tracking, and accessibility features.
 
-Navigate to the project directory:cd fiery-flappy-bird
+This project focuses on implementing a complete game system using
+fundamental frontend technologies.
 
+------------------------------------------------------------------------
 
-Open index.html in a web browser to play the game.
+# 🎯 Objectives
 
-Usage
+-   Build a complete browser-based game using vanilla JavaScript
+-   Implement physics-based bird movement
+-   Implement collision detection system
+-   Create dynamic obstacle generation
+-   Design structured game state management
+-   Implement scoring and difficulty system
+-   Provide accessibility support
 
-Open the game in a browser.
-Use the Start button to begin playing.
-Press and Hold Spacebar or click to make the bird flap or Ascend , Leave Spacebar to Slowly Desend The Bird and navigate through pipes.
-Use the Pause button to pause the game, and access Restart or Home options.
-Select difficulty levels or toggle Colorblind Mode from the home screen.
-In Custom mode, adjust Pipe Gap and Pipe Speed using sliders.
+------------------------------------------------------------------------
 
-Project Structure
+# 🧠 Architecture Diagram
 
-index.html: Main game file containing the HTML structure and game logic.
-styles.css: (embeded in html file) Contains styling for the game interface.
-script.js: (embeded in html file) Contains JavaScript for game mechanics and interactions.
+    +--------------------------------------------------+
+    |                     USER INPUT                   |
+    |            (Keyboard / Mouse Click)             |
+    +---------------------------+----------------------+
+                                |
+                                v
+    +--------------------------------------------------+
+    |                  INPUT HANDLER                  |
+    |         Handles user interaction events         |
+    +---------------------------+----------------------+
+                                |
+                                v
+    +--------------------------------------------------+
+    |                 GAME ENGINE LOOP                |
+    |         Continuous update and rendering         |
+    +---------------------------+----------------------+
+                                |
+                                v
+    +--------------------------------------------------+
+    |                 PHYSICS SYSTEM                  |
+    |        Applies gravity and velocity logic      |
+    +---------------------------+----------------------+
+                                |
+                                v
+    +--------------------------------------------------+
+    |               COLLISION DETECTION              |
+    |       Detects bird and obstacle collisions     |
+    +---------------------------+----------------------+
+                                |
+                                v
+    +--------------------------------------------------+
+    |                SCORE MANAGEMENT                |
+    |           Tracks score and best score          |
+    +---------------------------+----------------------+
+                                |
+                                v
+    +--------------------------------------------------+
+    |                GAME STATE MANAGER              |
+    |   Controls start, pause, restart, game over    |
+    +---------------------------+----------------------+
+                                |
+                                v
+    +--------------------------------------------------+
+    |               RENDERING SYSTEM                |
+    |        Updates game elements in browser        |
+    +--------------------------------------------------+
 
-Dependencies
+------------------------------------------------------------------------
 
-No external dependencies are required; the game runs in any modern web browser.
+# 📂 Project Structure
 
-Contributing
+    Fiery-Flappy-Bird/
+    │
+    ├── my game.html
+    │   ├── HTML structure
+    │   ├── CSS styling
+    │   └── JavaScript game logic
+    │
+    ├── README.md
+    │
+    └── LICENSE
 
-Fork the repository.
-Create a new branch (git checkout -b feature-branch).
-Make your changes and commit (git commit -m 'Add new feature').
-Push to the branch (git push origin feature-branch).
-Create a pull request.
+------------------------------------------------------------------------
 
-License
-This project is licensed under the MIT License - see the LICENSE file for details.
-Acknowledgments
+# 🚀 Features
 
-Inspired by the original Flappy Bird game.
-Built with vanilla HTML, CSS, and JavaScript for a lightweight experience.
+## Core Gameplay
 
+-   Gravity-based bird movement
+-   Upward movement on user input
+-   Dynamic pipe generation
+-   Collision detection
+-   Real-time gameplay
+
+## Difficulty Modes
+
+-   Easy mode
+-   Medium mode
+-   Hard mode
+-   Custom difficulty mode
+
+Custom mode allows adjustment of:
+
+-   Pipe gap
+-   Pipe speed
+
+## Lives System
+
+-   Player starts with multiple lives
+-   Game ends only after all lives are lost
+
+## Score System
+
+-   Real-time score tracking
+-   Best score tracking
+-   Best score reset feature
+
+## Game State Management
+
+-   Start screen
+-   Game screen
+-   Pause functionality
+-   Restart functionality
+-   Game over screen
+
+## Accessibility Feature
+
+-   Colorblind mode support
+
+------------------------------------------------------------------------
+
+# ⚙️ Installation
+
+Clone the repository:
+
+    git clone https://github.com/SaiKarthik547/Fiery-Flappy-Bird.git
+
+Navigate to directory:
+
+    cd Fiery-Flappy-Bird
+
+Run the game:
+
+Open `my game.html` in any web browser.
+
+------------------------------------------------------------------------
+
+# ▶️ Usage
+
+-   Press Spacebar or Click to make bird jump
+-   Avoid pipes
+-   Score increases as pipes are passed
+-   Game ends when lives reach zero
+
+------------------------------------------------------------------------
+
+# 🛠️ Technologies Used
+
+Programming Languages:
+
+-   HTML5
+-   CSS3
+-   JavaScript
+
+Platform:
+
+-   Web Browser
+
+Architecture:
+
+-   Game loop architecture
+-   Event-driven programming
+-   Physics simulation
+
+------------------------------------------------------------------------
+
+# 🔮 Future Improvements
+
+-   Canvas-based rendering
+-   Mobile support
+-   Sound effects
+-   Animations
+-   Improved graphics
+-   Modular code structure
+
+------------------------------------------------------------------------
+
+# 👨‍💻 Author
+
+Sai Karthik
+
+GitHub: https://github.com/SaiKarthik547
+
+------------------------------------------------------------------------
+
+# 📜 License
+
+This project is licensed for educational and personal use.
+
+------------------------------------------------------------------------
+
+# ⭐ Project Purpose
+
+This project demonstrates frontend engineering skills, browser-based
+game development, and implementation of core game mechanics using
+vanilla JavaScript.
